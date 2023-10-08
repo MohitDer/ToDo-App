@@ -150,12 +150,60 @@ class AddToDoActivity : AppCompatActivity() {
         val noteDao = database.noteDao()
         noteList = noteDao.getAllNotes()
 
+        if (id > 0) {
+            val existingNote = noteDao.getNoteById(id)
+            if (existingNote != null) {
+                // Populate UI elements with existing note details
+                binding.etTitle.setText(existingNote.title)
+                binding.etDiscription.setText(existingNote.content)
+                // Set priority and date fields accordingly
+                // ...
+
+                // Handle the Save button click
+                binding.ivSave.setOnClickListener {
+
+                }
+            }
+        }
+
 
         // For Save Data In Room Database
 
         binding.ivSave.setOnClickListener {
-            val title:String = binding.etTitle.text.toString()
-            val content:String = binding.etDiscription.text.toString()
+
+            if (id>0){
+                val existingNote = noteDao.getNoteById(id)
+                if (existingNote != null) {
+                    val title: String = binding.etTitle.text.toString()
+                    val content: String = binding.etDiscription.text.toString()
+
+                    if (!title.isNullOrEmpty() && !content.isNullOrEmpty() && !date.isNullOrEmpty()) {
+                        // Update the existing note with new values
+                        existingNote.title = title
+                        existingNote.content = content
+                        existingNote.priority = priority
+                        existingNote.date = date!!
+
+                        // Launch a coroutine to update the note
+                        GlobalScope.launch(Dispatchers.IO) {
+                            noteDao.update(existingNote)
+
+                            // Notify the RecyclerView adapter to refresh
+                            runOnUiThread {
+                                adapter = ToDoAdapter(noteDao.getAllNotes())
+                                adapter!!.notifyDataSetChanged()
+                            }
+                        }
+
+                        Toast.makeText(this@AddToDoActivity, "Task Updated", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Handle case where fields are blank
+                        Toast.makeText(this@AddToDoActivity, "Some Fields Are Blank", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }else{
+                val title:String = binding.etTitle.text.toString()
+                val content:String = binding.etDiscription.text.toString()
 
 
                 if (!title.isNullOrEmpty() && !content.isNullOrEmpty() && !date.isNullOrEmpty()) {
@@ -170,34 +218,18 @@ class AddToDoActivity : AppCompatActivity() {
 
                     // Launch a coroutine to insert the note
                     GlobalScope.launch(Dispatchers.IO) {
-
-                        if (!noteList.isNullOrEmpty()){
-                            for (i in noteList) {
-                                if (i.id == id) {
-                                    Log.d("TAG", "onCreate: " + i.id + "=" + id)
-                                    noteDao.update(note)
-                                    break
-                                } else {
-                                    noteDao.insert(note)
-                                    adapter = ToDoAdapter(noteDao.getAllNotes())
-                                    adapter!!.notifyDataSetChanged()
-                                }
-                            }
-                        }else{
-
-                            noteDao.insert(note)
-                            adapter = ToDoAdapter(noteDao.getAllNotes())
-                            adapter!!.notifyDataSetChanged()
-                        }
-
-
-
+                        noteDao.insert(note)
+                        adapter = ToDoAdapter(noteDao.getAllNotes())
+                        adapter!!.notifyDataSetChanged()
                     }
 
                     Toast.makeText(this@AddToDoActivity,"Task Saved",Toast.LENGTH_SHORT).show()
                 }else{
                     Toast.makeText(this,"Some Field Are Blank",Toast.LENGTH_SHORT).show()
                 }
+            }
+
+
         } //<-- End Save Data in RoomDataBase
 
         binding.ivReset.setOnClickListener {

@@ -22,4 +22,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes ORDER BY date DESC")
     fun getAllNotes(): List<Note>
+
+    @Query("SELECT * FROM notes WHERE id = :noteId")
+    fun getNoteById(noteId: Long): Note?
 }
