@@ -208,7 +208,6 @@ class AddToDoActivity : AppCompatActivity() {
 
         }
 
-        // Date Piker
         binding.tvDatePiker.setOnClickListener {
             val c = Calendar.getInstance()
             val year = c.get(Calendar.YEAR)
